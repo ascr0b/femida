@@ -6,7 +6,7 @@ from burp import IMessageEditorController
 from burp import IContextMenuFactory, IContextMenuInvocation
 from javax.swing import (JLabel, JTextField, JOptionPane,
     JTabbedPane, JPanel, JButton, JMenu, JMenuItem, JTable, JScrollPane,
-    JCheckBox, BorderFactory, Box, JFileChooser, ListSelectionModel)
+    JCheckBox, BorderFactory, Box, JFileChooser, ListSelectionModel,JCheckBox)
 from javax.swing.border import EmptyBorder
 from java.awt import (GridBagLayout, Dimension, GridBagConstraints,
     Color, FlowLayout, BorderLayout, Insets)
@@ -104,6 +104,7 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
     _overwriteHeader = False
     _overwriteParam = False
     _forkRequestParam = False
+    _JCheckBox_scope = None
 
 
     def doActiveScan(self, baseRequestResponse, insertionPoint):
@@ -139,7 +140,12 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
         self._dictHeaders = {}
         self._dictParams = {}
         self.status_flag = False
+	self.scope_flag = False
 
+	self._JCheckBox_scope = swing.JButton("In Scope only",  actionPerformed=self.active_scope)
+	self._JCheckBox_scope.setBackground(Color.WHITE)
+        self.createAnyView(self._JCheckBox_scope, 0, 0, 3, 1, Insets(0, 0, 10, 0))	
+	
         self.jfc = JFileChooser("./")
         self.jfc.setDialogTitle("Upload Payloads")
         self.jfc.setFileFilter(FileNameExtensionFilter("TXT file", ["txt"]))
@@ -148,11 +154,11 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
         self._jPanel.setLayout(self._layout)
 
         self._jLabelTechniques = JLabel("Press to start:")
-        self.createAnyView(self._jLabelTechniques, 0, 0, 3, 1, Insets(0, 0, 10, 0))
+        self.createAnyView(self._jLabelTechniques, 3, 0, 3, 1, Insets(0, 0, 10, 0))
 
         self.submitSearchButton = swing.JButton('Run proxy', actionPerformed=self.active_flag)
         self.submitSearchButton.setBackground(Color.WHITE)
-        self.createAnyView(self.submitSearchButton, 3, 0, 6, 1, Insets(0, 0, 10, 0))
+        self.createAnyView(self.submitSearchButton, 6, 0, 6, 1, Insets(0, 0, 10, 0))
 
         self._jPanel.setBounds(0, 0, 1000, 1000)
         self._jLabelTechniques = JLabel("Your URL (my.burpcollaborator.net):")
@@ -421,6 +427,15 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
             for line in f:
                 self.insertAnyTable(table, [str(line), '1'])
 
+    def active_scope(self, button):
+	if not self.scope_flag:
+	    self.scope_flag = True
+	    self._JCheckBox_scope.setBackground(Color.GRAY)
+	    self.appendToResults("[Attention] In scope only mode is activated...\n")
+	else:
+	    self.scope_flag = False
+	    self._JCheckBox_scope.setBackground(Color.WHITE)
+	    self.appendToResults("[Attention] In scope only mode is deactivated...\n")	
 
     def active_flag(self, button):
         if not self.status_flag:
@@ -518,6 +533,11 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
         # only process requests
         if not messageIsRequest:
             return
+	# Check if url is in scope
+	if self.scope_flag:
+		URL = messageInfo.getUrl()
+		if not self._callbacks.isInScope(URL):
+			return
 
         if self._forkRequestParam:
             requestString = messageInfo.getRequest().tostring()
