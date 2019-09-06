@@ -140,12 +140,14 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
         self._dictHeaders = {}
         self._dictParams = {}
         self.status_flag = False
-	self.scope_flag = False
+        self.scope_flag = False
 
-	self._JCheckBox_scope = swing.JButton("In Scope only",  actionPerformed=self.active_scope)
-	self._JCheckBox_scope.setBackground(Color.WHITE)
+        ### Scope button ###
+        self._JCheckBox_scope = swing.JButton("In Scope only",  actionPerformed=self.active_scope)
+        self._JCheckBox_scope.setBackground(Color.WHITE)
         self.createAnyView(self._JCheckBox_scope, 0, 0, 3, 1, Insets(0, 0, 10, 0))	
-	
+        ####################	   
+
         self.jfc = JFileChooser("./")
         self.jfc.setDialogTitle("Upload Payloads")
         self.jfc.setFileFilter(FileNameExtensionFilter("TXT file", ["txt"]))
@@ -172,6 +174,15 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
         self._forkRequestButton.setBackground(Color.WHITE)
         self.createAnyView(self._forkRequestButton, 8, 1, 1, 1, Insets(0, 0, 10, 0))
 
+        ### Filter extensions block ###
+        self._jLabelExt = JLabel("Filtered extensions:")
+        self.createAnyView(self._jLabelExt, 0, 2, 3, 1, Insets(0, 0, 10, 0))
+
+        self._jTextFieldExt = JTextField("", 30)
+        self._jTextFieldExt.addActionListener(self.setCallbackExt)
+        self.createAnyView(self._jTextFieldExt, 3, 2, 10, 1, Insets(0, 0, 10, 0))
+        ##############################
+
         self._tableModelPayloads = DefaultTableModel() 
         self._tableModelPayloads.addColumn("Payload")
         self._tableModelPayloads.addColumn("Active")
@@ -185,57 +196,57 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
         self._tableModelParams.addColumn("Active")
 
         self._payloadTable = self.createAnyTable(self._tableModelPayloads, 1, Dimension(300, 200))
-        self.createAnyView(self._payloadTable, 0, 2, 3, 1, Insets(0, 0, 0, 10))
+        self.createAnyView(self._payloadTable, 0, 3, 3, 1, Insets(0, 0, 0, 10))
 
         self._headerTable = self.createAnyTable(self._tableModelHeaders, 2, Dimension(300, 200))
-        self.createAnyView(self._headerTable, 3, 2, 3, 1, Insets(0, 0, 0, 10))
+        self.createAnyView(self._headerTable, 3, 3, 3, 1, Insets(0, 0, 0, 10))
 
         self._paramTable = self.createAnyTable(self._tableModelParams, 3, Dimension(300, 200))
-        self.createAnyView(self._paramTable, 6, 2, 3, 1, Insets(0, 0, 0, 0))
+        self.createAnyView(self._paramTable, 6, 3, 3, 1, Insets(0, 0, 0, 0))
 
         deletePayloadButton = swing.JButton('Delete',actionPerformed=self.deleteToPayload)
         deletePayloadButton.setBackground(Color.WHITE)
-        self.createAnyView(deletePayloadButton, 0, 3, 1, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(deletePayloadButton, 0, 4, 1, 1, Insets(3, 0, 0, 0))
 
         deletePayloadButton = swing.JButton('Upload',actionPerformed=self.uploadToPayload)
         deletePayloadButton.setBackground(Color.WHITE)
-        self.createAnyView(deletePayloadButton, 1, 3, 1, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(deletePayloadButton, 1, 4, 1, 1, Insets(3, 0, 0, 0))
 
         addPayloadButton = swing.JButton('Add',actionPerformed=self.addToPayload)
         addPayloadButton.setBackground(Color.WHITE)
-        self.createAnyView(addPayloadButton, 2, 3, 1, 1, Insets(3, 0, 0, 10))
+        self.createAnyView(addPayloadButton, 2, 4, 1, 1, Insets(3, 0, 0, 10))
 
         deleteHeaderButton = swing.JButton('Delete',actionPerformed=self.deleteToHeader)
         deleteHeaderButton.setBackground(Color.WHITE)
-        self.createAnyView(deleteHeaderButton, 3, 3, 1, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(deleteHeaderButton, 3, 4, 1, 1, Insets(3, 0, 0, 0))
 
         self._overwriteHeaderButton = swing.JButton('Overwrite',actionPerformed=self.overwriteHeader)
         self._overwriteHeaderButton.setBackground(Color.WHITE)
-        self.createAnyView(self._overwriteHeaderButton, 4, 3, 1, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(self._overwriteHeaderButton, 4, 4, 1, 1, Insets(3, 0, 0, 0))
 
         addHeaderButton = swing.JButton('Add',actionPerformed=self.addToHeader)
         addHeaderButton.setBackground(Color.WHITE)
-        self.createAnyView(addHeaderButton, 5, 3, 1, 1, Insets(3, 0, 0, 10))
+        self.createAnyView(addHeaderButton, 5, 4, 1, 1, Insets(3, 0, 0, 10))
 
         deleteParamsButton = swing.JButton('Delete',actionPerformed=self.deleteToParams)
         deleteParamsButton.setBackground(Color.WHITE)
-        self.createAnyView(deleteParamsButton, 6, 3, 1, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(deleteParamsButton, 6, 4, 1, 1, Insets(3, 0, 0, 0))
 
         self._overwriteParamButton = swing.JButton('Overwrite',actionPerformed=self.overwriteParam)
         self._overwriteParamButton.setBackground(Color.WHITE)
-        self.createAnyView(self._overwriteParamButton, 7, 3, 1, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(self._overwriteParamButton, 7, 4, 1, 1, Insets(3, 0, 0, 0))
 
         addParamsButton = swing.JButton('Add',actionPerformed=self.addToParams)
         addParamsButton.setBackground(Color.WHITE)
-        self.createAnyView(addParamsButton, 8, 3, 1, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(addParamsButton, 8, 4, 1, 1, Insets(3, 0, 0, 0))
         
         self._resultsTextArea = swing.JTextArea()
         resultsOutput = swing.JScrollPane(self._resultsTextArea)
         resultsOutput.setMinimumSize(Dimension(800,200))
-        self.createAnyView(resultsOutput, 0, 4, 9, 1, Insets(10, 0, 0, 0))
+        self.createAnyView(resultsOutput, 0, 5, 9, 1, Insets(10, 0, 0, 0))
 
         self.clearSearchButton = swing.JButton('Clear Search Output',actionPerformed=self.clearOutput)
-        self.createAnyView(self.clearSearchButton, 3, 6, 3, 1, Insets(3, 0, 0, 0))
+        self.createAnyView(self.clearSearchButton, 3, 7, 3, 1, Insets(3, 0, 0, 0))
 
         self._callbacks.customizeUiComponent(self._jPanel)
         self._callbacks.addSuiteTab(self)
@@ -364,6 +375,8 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
         self.addFromFileAsync(config.Payloads, self._tableModelPayloads)
         self.addFromFileAsync(config.Headers, self._tableModelHeaders)
         self.addFromFileAsync(config.Parameters, self._tableModelParams)
+        self._jTextFieldExt.setText(config.Extensions)
+        self.BAD_EXTENSIONS =  config.Extensions.replace(" ", "").split(",")
         self._jTextFieldURL.setText(config.Callback_url)
         self._tableModelPayloads.addTableModelListener(MyTableModelListener(self._tableModelPayloads, self, self._dictPayloads, config.Payloads))
         self._tableModelHeaders.addTableModelListener(MyTableModelListener(self._tableModelHeaders, self, self._dictHeaders, config.Headers))
@@ -372,6 +385,13 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
     def setCallbackUrl(self, event):
         self.replaceLine(self.conf_path, self._jTextFieldURL.getText())
         self.appendToResults('New url={} saved.'.format(self._jTextFieldURL.getText()))
+
+    ### Extenstion update callback ###
+    def setCallbackExt(self, event):
+        extensions = self._jTextFieldExt.getText()
+        bad = extensions.replace(" ", "")
+        self.BAD_EXTENSIONS = bad.split(",")
+    ##################################    
 
     def addToPayload(self, button):
         self.insertAnyTable(self._tableModelPayloads, ['', '1'])
@@ -431,11 +451,11 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
 	if not self.scope_flag:
 	    self.scope_flag = True
 	    self._JCheckBox_scope.setBackground(Color.GRAY)
-	    self.appendToResults("[Attention] In scope only mode is activated...\n")
+	    self.appendToResults("[Attention] Scope mode is activated...\n")
 	else:
 	    self.scope_flag = False
 	    self._JCheckBox_scope.setBackground(Color.WHITE)
-	    self.appendToResults("[Attention] In scope only mode is deactivated...\n")	
+	    self.appendToResults("[Attention] Scope mode is deactivated...\n")	
 
     def active_flag(self, button):
         if not self.status_flag:
@@ -538,7 +558,12 @@ class BurpExtender(IBurpExtender, ITab, IHttpListener, IMessageEditorController,
 		URL = messageInfo.getUrl()
 		if not self._callbacks.isInScope(URL):
 			return
-
+        # Check extensions
+        for extension in self.BAD_EXTENSIONS:
+            print(extension)
+            if str(URL).endswith(extension):
+                return
+                    
         if self._forkRequestParam:
             requestString = messageInfo.getRequest().tostring()
             # SOOOO HARD FIX! It should be better

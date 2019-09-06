@@ -7,6 +7,5 @@ Git clone https://github.com/ascr0b/femida.git
 Burp -> Extender -> Add -> find and select blind-xss.py
 
 ### Features in the fork
-The **Scope only mode** is added. The extension will only process requests to resources specified in the scope.
-To activate just click **In scope only** button.
-
+1. **Scope mode**. The extension will only process requests to resources specified in the scope. To activate just click **In scope only** button.
+2. **Extension Filtering**. You can filter all undesirable extensions.
